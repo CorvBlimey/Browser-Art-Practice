@@ -47,7 +47,7 @@ canvas.addEventListener('mousemove', processMouseMove);
 canvas.addEventListener('mousedown', processMouseDown);
 canvas.addEventListener('mouseenter', processMouseDown);
 canvas.addEventListener('mouseup', processMouseUp);
-canvas.addEventListener('touchmove', processMouseMove);
+canvas.addEventListener('touchmove', processTouchMove);
 canvas.addEventListener('touchstart', processTouchStart);
 canvas.addEventListener('touchend', processMouseUp);
 
@@ -55,6 +55,7 @@ drawNextExerciseScreen({"text": "Let's Go!", "color": light_ink});
 
 // Cancel any mouse events fired during touch event
 function processTouchStart(e){e.preventDefault(); processMouseDown(e);}
+function processTouchMove(e){e.preventDefault(); processMouseMove(e);}
 
 function processMouseMove(e){
   switch(current_canvas_mode) {
@@ -301,13 +302,14 @@ function gradeStroke(){
   total_score.textContent = parseInt(total_score.textContent) + total_points;
 }
 
-// Move with the mouse.
+// Move with the mouse/touch
 function setPosition(e) {
   if(e.type == 'touchstart' || e.type == 'touchmove' || e.type == 'touchend'){
+    // var touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
     var rect = e.target.getBoundingClientRect();
-    pos.x = e.targetTouches[0].pageX - rect.left;
-    pos.y = e.targetTouches[0].pageY - rect.top;
-    alert("Sorry folks, no better way for me to test right now: "+pos.x+" "+pos.y);
+    if(e.touches.length == 0){return;}  // TODO: What is even going on here. Touchend?
+    pos.x = e.touches[0].pageX - rect.left;
+    pos.y = e.touches[0].pageY - rect.top;
   } else {
     pos.x = e.offsetX;
     pos.y = e.offsetY;
@@ -324,8 +326,8 @@ function resize() {
 }
 
 function drawLearnerStroke(e) {
-  // mouse left button must be pressed
-  if (e.buttons !== 1) return;
+  // mouse left button must be pressed (or a touchmove)
+  if (e.buttons !== 1 && e.type !== "touchmove") return;
   ctx.beginPath();
   ctx.moveTo(pos.x, pos.y);
   setPosition(e);
