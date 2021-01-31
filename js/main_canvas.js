@@ -8,10 +8,17 @@ canvas.style.display = "block";
 var teacher_line_width = 4;
 var student_line_width = 3;
 ctx.lineCap = 'round';
-var small_font = "24px Monospace";
-var big_font = "40px Monospace";
+var small_font = "1vw Monospace";
+var big_font = "2vw Monospace";
 var light_ink = "#FFF4EC";
 var dark_ink = "#CFB47C";
+var exercise_text = {
+  "GLORIOUS!": ["That was amazing!", "You knocked it out of the park!", "Fantastic work!", "You're killing it!",
+                "Absolutely stunning!", "GLORIOUS!"],
+  "Great!": ["Awesome job!", "That was great!", "Keep it up!", "Great!", "Keep up the great work!", "Wonderful!", "Excellent job!"],
+  "Good": ["You're doing good!", "Keep it up!", "Looking good!", "Good!", "You're getting it!", "Solid!"],
+  "Fair": ["Solid work!", "You're putting in the effort!", "You're improving!", "Onwards and upwards!", "Keep at it!"],
+  "miss": ["Keep at it!", "You can do it!", "Don't sweat it!", "Let's go!"]};
 ctx.strokeStyle = dark_ink;
 ctx.fillStyle = light_ink;
 var pos = { x: 0, y: 0 };
@@ -27,10 +34,11 @@ var exercise_step = 0;
 var exercise_step_coords = [];  // Coords for the current step of the exercise
 var student_coords = [];
 var exercise_points = 0;
+var exercise_possible_points = 0;
 var student_start_time = 0;
 var student_end_time = 0;
 resize();  // the left side of the screen is the canvas, the right is scoring/progress
-resize();  // HTML gets funky if we don't do it twice. HTML is a mystery.
+resize();  // TODO: HTML gets funky if we don't do it twice. HTML is a mystery.
 
 // My only touch device fires mouse events.
 // There may be more compatability work to do here, but I'll need test volunteers
@@ -40,7 +48,7 @@ canvas.addEventListener('mousedown', processMouseDown);
 canvas.addEventListener('mouseenter', processMouseDown);
 canvas.addEventListener('mouseup', processMouseUp);
 
-drawStartExerciseScreen();
+drawNextExerciseScreen({"text": "Let's Go!", "color": light_ink});
 
 function processMouseMove(e){
   switch(current_canvas_mode) {
@@ -73,14 +81,34 @@ function processMouseUp(e){
     gradeStroke();
     student_coords = [];
     exercise_step ++;
+    // We do it after because zero-indexed
+    document.getElementById("strokes_done").textContent = exercise_step;
     if(exercise_step < exercise.strokes.length){
       drawTeacherStroke();
     } else {
-      //drawFinishExerciseScreen();
+      var exercise_result = getDescriptorFromGrade(exercise_points/exercise_possible_points);
+      if(exercise_result.text == "miss"){exercise_result.color = light_ink;}
+      exercise_result.text = exercise_text[exercise_result.text][Math.floor(Math.random() * exercise_text[exercise_result.text].length)];
+      clearForNextExercise();
+      exercise = setExerciseDefaults(chooseRandomExercise());
+      drawNextExerciseScreen(exercise_result);
+      current_canvas_mode = CanvasMode.startExercise;
     }
     break;
   }
 }
+
+// Reset our counters in preparation for the next exercise
+function clearForNextExercise(){
+  exercise_step = 0;
+  exercise_step_coords = [];
+  student_coords = [];
+  exercise_points = 0;
+  exercise_possible_points = 0;
+  document.getElementById("exercise_score").textContent = 0;
+  document.getElementById("strokes_done").textContent = 0;
+}
+
 
 // Pick a random exercise from exercises.js
 function chooseRandomExercise(){
@@ -227,11 +255,11 @@ function convertRelativeCoordsToAbsolute(coords_list) {
 }
 
 function getDescriptorFromGrade(grade){
-  if(grade > 0.95){return {"desc": "GLORIOUS!", "color": "#FF6666"};}
-  if(grade > 0.80){return {"desc": "Great!", "color": "#FF66FF"};}
-  if(grade > 0.60){return {"desc": "Good", "color": "#66FFFF"};}
-  if(grade >= 0.35){return {"desc": "Fair", "color": "#66FF66"};}
-  return {"desc": "miss", "color": "#888888"};
+  if(grade > 0.95){return {"text": "GLORIOUS!", "color": "#FFAA66"};}
+  if(grade > 0.80){return {"text": "Great!", "color": "#FF66FF"};}
+  if(grade > 0.60){return {"text": "Good", "color": "#66FFFF"};}
+  if(grade >= 0.35){return {"text": "Fair", "color": "#66FF66"};}
+  return {"text": "miss", "color": "#888888"};
 }
 
 // Update the displays with the grade result and return the score and max
@@ -240,7 +268,7 @@ function applyGrade(grade_name, grade){
   var grade_text = getDescriptorFromGrade(grade);
   var grade_text_span = document.getElementById(grade_name + "_rating");
   grade_text_span.style.color = grade_text.color;
-  grade_text_span.textContent = grade_text.desc;
+  grade_text_span.textContent = grade_text.text;
   return [grade * exercise[grade_name+"_mult"] * exercise.point_value, exercise[grade_name+"_mult"] * exercise.point_value];
 }
 
@@ -259,10 +287,12 @@ function gradeStroke(){
     possible_points += point_spreads[i][1];
   }
   applyGrade("overall", total_points/possible_points);
-  var exercise_score = document.getElementById("exercise_score");
-  exercise_score.textContent = parseInt(exercise_score.textContent) + Math.floor(total_points);
+  total_points = Math.floor(total_points);
+  exercise_possible_points += Math.floor(possible_points);
+  exercise_points += total_points;
+  document.getElementById("exercise_score").textContent = exercise_points;
   var total_score = document.getElementById("total_score");
-  total_score.textContent = parseInt(total_score.textContent) + Math.floor(total_points);
+  total_score.textContent = parseInt(total_score.textContent) + total_points;
 }
 
 // Move with the mouse.
@@ -292,14 +322,18 @@ function drawLearnerStroke(e) {
 
 // I'd like this screen to become more lively as the score gets higher
 // It's the main "reward". Maybe it could have flowers and the like "sprouting" from the bottom
-function drawStartExerciseScreen() {
+function drawNextExerciseScreen(encouragement) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.font = big_font;
+  ctx.lineWidth = student_line_width;
+  var positions = convertRelativeCoordsToAbsolute([[0.5, 0.3], [0.5, 0.4], [0.5, 0.55]]);
+  ctx.textAlign = "center";
+  ctx.fillStyle = encouragement.color;
+  ctx.fillText(encouragement.text, positions[0][0], positions[0][1]);
   ctx.fillStyle = light_ink;
-  var positions = convertRelativeCoordsToAbsolute([[0.2, 0.2], [0.2, 0.4], [0.2, 0.6]]);
-  ctx.fillText("Let's Go!", positions[0][0], positions[0][1]);
-  ctx.fillText(exercise.title, positions[1][0], positions[1][1]);
+  ctx.fillText("Next: "+exercise.title, positions[1][0], positions[1][1]);
   ctx.font = small_font;
   var description_string = exercise.description + " [Author: " + exercise.author + "]";
   ctx.fillText(description_string, positions[2][0], positions[2][1]);
+  document.getElementById("strokes_total").textContent = exercise.strokes.length;
 }
