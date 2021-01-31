@@ -3,6 +3,8 @@ var canvas = document.createElement('canvas');
 document.getElementById("canvas_div").appendChild(canvas);
 canvas.style.background = '#272127';  // I use desaturated purples for...reasons?
 var ctx = canvas.getContext('2d');
+canvas.style.margin = "auto";
+canvas.style.display = "block";
 var teacher_line_width = 4;
 var student_line_width = 3;
 ctx.lineCap = 'round';
