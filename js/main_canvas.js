@@ -304,10 +304,10 @@ function gradeStroke(){
 // Move with the mouse.
 function setPosition(e) {
   if(e.type == 'touchstart' || e.type == 'touchmove' || e.type == 'touchend'){
-    var touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
     var rect = e.target.getBoundingClientRect();
     pos.x = e.targetTouches[0].pageX - rect.left;
     pos.y = e.targetTouches[0].pageY - rect.top;
+    alert("Sorry folks, no better way for me to test right now: "+pos.x+" "+pos.y);
   } else {
     pos.x = e.offsetX;
     pos.y = e.offsetY;
