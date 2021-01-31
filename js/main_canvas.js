@@ -1,10 +1,6 @@
 // This is the main "game screen"/spaghetti warehouse for the program.
 var canvas = document.createElement('canvas');
 document.getElementById("canvas_div").appendChild(canvas);
-//canvas.style.position = 'fixed';
-document.body.style.margin = 10;
-canvas.style.margin = "5px";
-canvas.style.float = "right";
 canvas.style.background = '#272127';  // I use desaturated purples for...reasons?
 var ctx = canvas.getContext('2d');
 var teacher_line_width = 4;
@@ -16,7 +12,6 @@ var light_ink = "#FFF4EC";
 var dark_ink = "#CFB47C";
 ctx.strokeStyle = dark_ink;
 ctx.fillStyle = light_ink;
-resize();  // the left side of the screen is the canvas, the right is scoring/progress
 var pos = { x: 0, y: 0 };
 var score = 0;
 // plain Javascript's Enum equivalent does allow for "wrong" values, oh well
@@ -32,32 +27,8 @@ var student_coords = [];
 var exercise_points = 0;
 var student_start_time = 0;
 var student_end_time = 0;
-
-// Math.std does not seem to exist, so let's just be a little janky for now
-// Borrowed from derickbailey.com
-function standardDeviation(values){
-  var avg = average(values);
-
-  var squareDiffs = values.map(function(value){
-    var diff = value - avg;
-    var sqrDiff = diff * diff;
-    return sqrDiff;
-  });
-
-  var avgSquareDiff = average(squareDiffs);
-
-  var stdDev = Math.sqrt(avgSquareDiff);
-  return stdDev;
-}
-
-function average(data){
-  var sum = data.reduce(function(sum, value){
-    return sum + value;
-  }, 0);
-
-  var avg = sum / data.length;
-  return avg;
-}
+resize();  // the left side of the screen is the canvas, the right is scoring/progress
+resize();  // HTML gets funky if we don't do it twice. HTML is a mystery.
 
 // My only touch device fires mouse events.
 // There may be more compatability work to do here, but I'll need test volunteers
@@ -302,7 +273,8 @@ function setPosition(e) {
 // resize canvas
 function resize() {
   //We reserve 20% width for score/etc and a 10whatever margin
-  ctx.canvas.width = Math.min(window.innerWidth*0.8, window.innerHeight-20);
+  parent = document.getElementById("canvas_div");
+  ctx.canvas.width = Math.min(parent.clientWidth, window.innerHeight-20);
   ctx.canvas.height = ctx.canvas.width;
 }
 
