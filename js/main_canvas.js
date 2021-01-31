@@ -303,8 +303,15 @@ function gradeStroke(){
 
 // Move with the mouse.
 function setPosition(e) {
-  pos.x = e.offsetX;
-  pos.y = e.offsetY;
+  if(e.type == 'touchstart' || e.type == 'touchmove' || e.type == 'touchend'){
+    var touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
+    var rect = e.target.getBoundingClientRect();
+    pos.x = e.targetTouches[0].pageX - rect.left;
+    pos.y = e.targetTouches[0].pageY - rect.top;
+  } else {
+    pos.x = e.offsetX;
+    pos.y = e.offsetY;
+  }
   student_coords.push([pos.x, pos.y]);
 }
 
