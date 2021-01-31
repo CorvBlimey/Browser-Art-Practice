@@ -1,0 +1,40 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>Browser Art Practice</title>
+  <meta name="description" content="Main canvas for browser art practice">
+  <meta name="author" content="CorvBlimey">
+
+  <link rel="stylesheet" href="styles.css">
+
+</head>
+
+<body>
+ <div id="content_div" style="display: flex;">
+  <div id="left_status_div" style="flex-grow: 1;">
+    <div id="assesment_div" class="infobox">
+      <span>Accuracy: </span><span id="accuracy_rating">None</span></br>
+      <span>Length: </span><span id="length_rating">None</span><br>
+      <span>Speed: </span><span id="speed_rating">None</span><br>
+      <span>Endpoint: </span><span id="endpoint_rating">None</span><br>
+      <span>Overall: </span><span id="overall_rating">None</span><br>
+    </div></div>
+  <div id="canvas_div"></div>
+  <div id="right_status_div" style="flex-grow: 1;">
+    <div id="score_div" class="infobox">
+      <span>Exercise Score</span></br><span id="exercise_score">0</span><br><br>
+      <span>Total Score</span></br><span id="total_score">0</span>
+    </div>
+    <div id="strokes_div" class="infobox">
+      <span>Strokes Remaining: </span>
+      <span id="strokes_done">0</span><span>/</span><span id="strokes_remaining">0</span>
+    </div>
+  </div>
+ </div>
+  <script type="text/javascript" src="js/exercises.js"></script>
+  <script type="text/javascript" src="js/main_canvas.js"></script>
+</body>
+</html>

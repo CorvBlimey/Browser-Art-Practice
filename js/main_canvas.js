@@ -1,0 +1,331 @@
+// This is the main "game screen"/spaghetti warehouse for the program.
+var canvas = document.createElement('canvas');
+document.getElementById("canvas_div").appendChild(canvas);
+//canvas.style.position = 'fixed';
+document.body.style.margin = 10;
+canvas.style.margin = "5px";
+canvas.style.float = "right";
+canvas.style.background = '#272127';  // I use desaturated purples for...reasons?
+var ctx = canvas.getContext('2d');
+var teacher_line_width = 4;
+var student_line_width = 3;
+ctx.lineCap = 'round';
+var small_font = "24px Monospace";
+var big_font = "40px Monospace";
+var light_ink = "#FFF4EC";
+var dark_ink = "#CFB47C";
+ctx.strokeStyle = dark_ink;
+ctx.fillStyle = light_ink;
+resize();  // the left side of the screen is the canvas, the right is scoring/progress
+var pos = { x: 0, y: 0 };
+var score = 0;
+// plain Javascript's Enum equivalent does allow for "wrong" values, oh well
+CanvasMode = Object.freeze({"startExercise":1,
+                            "doExercise":2,
+                            "finishExercise":3,
+                            "done":4});
+var current_canvas_mode = CanvasMode.startExercise;
+var exercise = setExerciseDefaults(chooseRandomExercise());  // only random mode for now
+var exercise_step = 0;
+var exercise_step_coords = [];  // Coords for the current step of the exercise
+var student_coords = [];
+var exercise_points = 0;
+var student_start_time = 0;
+var student_end_time = 0;
+
+// Math.std does not seem to exist, so let's just be a little janky for now
+// Borrowed from derickbailey.com
+function standardDeviation(values){
+  var avg = average(values);
+
+  var squareDiffs = values.map(function(value){
+    var diff = value - avg;
+    var sqrDiff = diff * diff;
+    return sqrDiff;
+  });
+
+  var avgSquareDiff = average(squareDiffs);
+
+  var stdDev = Math.sqrt(avgSquareDiff);
+  return stdDev;
+}
+
+function average(data){
+  var sum = data.reduce(function(sum, value){
+    return sum + value;
+  }, 0);
+
+  var avg = sum / data.length;
+  return avg;
+}
+
+// My only touch device fires mouse events.
+// There may be more compatability work to do here, but I'll need test volunteers
+window.addEventListener('resize', resize);
+canvas.addEventListener('mousemove', processMouseMove);
+canvas.addEventListener('mousedown', processMouseDown);
+canvas.addEventListener('mouseenter', processMouseDown);
+canvas.addEventListener('mouseup', processMouseUp);
+
+drawStartExerciseScreen();
+
+function processMouseMove(e){
+  switch(current_canvas_mode) {
+  case CanvasMode.doExercise:
+    drawLearnerStroke(e);
+    break;
+    // TODO: default alert for safety. For now most modes don't do much.
+  }
+}
+
+function processMouseDown(e){
+  switch(current_canvas_mode) {
+  case CanvasMode.doExercise:
+    student_start_time = new Date();
+    setPosition(e);
+    break;
+  }
+}
+
+function processMouseUp(e){
+  switch(current_canvas_mode) {
+  case CanvasMode.startExercise:
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    current_canvas_mode = CanvasMode.doExercise;
+    drawTeacherStroke();
+    break;
+  case CanvasMode.doExercise:
+    setPosition(e);
+    student_end_time = new Date();
+    gradeStroke();
+    student_coords = [];
+    exercise_step ++;
+    if(exercise_step < exercise.strokes.length){
+      drawTeacherStroke();
+    } else {
+      //drawFinishExerciseScreen();
+    }
+    break;
+  }
+}
+
+// Pick a random exercise from exercises.js
+function chooseRandomExercise(){
+  var keys = Object.keys(exercises);
+  return exercises[keys[ keys.length * Math.random() << 0]];
+}
+
+// For exercises.js cleanliness, we allow exercises to not set ALL possible properties
+// For sanity in accessing them, we set them here.
+function setExerciseDefaults(exercise){
+    if (!exercise.hasOwnProperty('useOpacity')){
+      exercise.useOpacity = false;  // Opacity will be a whole can of worms
+    }
+    exercise.overall_mult = 0; // This is bad and I feel bad but I'm very tired
+    return exercise;
+}
+
+// Assemble the current stroke for the current exercise
+function assembleTeacherStroke(){
+  ctx.beginPath();
+  ctx.moveTo(exercise_step_coords[0][0], exercise_step_coords[0][1]);
+  for(var i = 1; i < exercise_step_coords.length; i++){
+      ctx.lineTo(exercise_step_coords[i][0], exercise_step_coords[i][1]);
+  }
+}
+
+// Wrapper so I can reuse assembleTeacherStroke for grading.
+// It really feels like I should be able to save that path and return it to
+// grade the student against, but I can't for the life of me figure out how to.
+function drawTeacherStroke(){
+  exercise_step_coords = convertRelativeCoordsToAbsolute(exercise.strokes[exercise_step]);
+  ctx.strokeStyle = dark_ink;
+  ctx.lineWidth = teacher_line_width;
+  assembleTeacherStroke();
+  ctx.stroke();
+  ctx.strokeStyle = light_ink;
+  ctx.lineWidth = student_line_width;
+}
+
+// Check what percent of the student's points lie along the teacher's path.
+// As mentioned in the comment for drawTeacherStroke, I'm forced to remake the path
+function gradeAccuracy(){
+  var accurate_positions = 0;
+  var total_positions = student_coords.length;
+  assembleTeacherStroke();
+  ctx.lineWidth = teacher_line_width+2;  // +1 because the width and human eye don't seem 100% aligned
+  for(var i=0; i<student_coords.length; i++){
+    if(ctx.isPointInStroke(student_coords[i][0], student_coords[i][1])){
+      accurate_positions ++;
+    }
+  }
+  return accurate_positions/total_positions;
+}
+
+// Given just two points in split-out form (see args), find their distance.
+function getDistanceBetweenPoints(x1, y1, x2, y2){return Math.sqrt((x1-x2)**2 + (y1-y2)**2);}
+
+// Given a list of absolute coords, find the distance from one to the next.
+function getDistanceBetweenCoords(coordinate_list){
+  var distances = [];
+  var x1 = coordinate_list[0][0];
+  var y1 = coordinate_list[0][1];
+  for(var i=1; i<coordinate_list.length; i++){
+    var x2 = coordinate_list[i][0];
+    var y2 = coordinate_list[i][1];
+    distances.push(getDistanceBetweenPoints(x1, y1, x2, y2));
+    x1 = x2;
+    y1 = y2;
+  }
+  return distances;
+}
+
+// Given a list of absolute coords, find how long the final path is.
+function getLengthOfCoordPath(coords_list){
+  var dist_list = getDistanceBetweenCoords(coords_list);
+  // My kingdom for a list comprehension.
+  var total_distance = 0;
+  for(var i=0; i < dist_list.length; i++){
+    total_distance += dist_list[i];
+  }
+  return total_distance;
+}
+
+// Check how long the student's path is vs. the teacher's.
+// This is a stand-in for looking for "wiggliness", which would AFAIK be a nightmare to compute
+// This is gameable (an awful wiggly line that HAPPENS TO BE the same length as the teacher's because it's
+// too short will get full marks), so Accuracy is an important partner!
+function gradeLength(){
+  ideal_length = getLengthOfCoordPath(exercise_step_coords);
+  student_length = getLengthOfCoordPath(student_coords);
+  // You earn points if the length difference is within 40% of the ideal length or 40 pixels, whichever's smaller.
+  return Math.max(0, 1-Math.abs(ideal_length-student_length)/Math.min(40, ideal_length*0.4));
+}
+
+// The shorter the line, the faster you should finish it. And faster lines look better. Probably.
+function gradeSpeed(){
+  var elapsed_ms = student_end_time - student_start_time;
+  // We arbitrarily say that the rate to aim for is 1.5 pixels per millisecond
+  return Math.min(1, 1.5*(getLengthOfCoordPath(exercise_step_coords)/elapsed_ms));
+}
+
+/* Part of control is ending up where you're supposed to, so we give a big bonus
+to the accuracy at the endpoint. Finding the "endpoint" is tricky (consider the circle).
+My approach is to find the point closest to the student's starting point and declare that the "start",
+then say that the point to either the left or right of it (looping around if necessary, list[-1] in Python)
+must be the end. If someone misses their start point badly enough, this might result in an auto-fail
+which, given the nature of the category, seems fair.
+*/
+function gradeEndpoint(){
+  var distance = 9999;
+  var min_distance = 9999;
+  var start_point_offset = 0;
+  var x1 = student_coords[0][0];
+  var y1 = student_coords[0][1];
+  for(var i=0; i<exercise_step_coords.length; i++){
+    distance = getDistanceBetweenPoints(x1, y1, exercise_step_coords[i][0], exercise_step_coords[i][1]);
+    if(distance < min_distance){
+      min_distance = distance;
+      start_point_offset = i;
+    }
+  }
+  var left_potential_endpoint = (start_point_offset > 0) ? start_point_offset - 1 : exercise_step_coords.length-1;
+  var right_potential_endpoint = (start_point_offset < exercise_step_coords.length-1) ? start_point_offset + 1 : 0;
+  x1 = student_coords[student_coords.length-1][0];
+  y1 = student_coords[student_coords.length-1][1];
+  var left_dist = getDistanceBetweenPoints(x1, y1, exercise_step_coords[left_potential_endpoint][0], exercise_step_coords[left_potential_endpoint][1]);
+  var right_dist = getDistanceBetweenPoints(x1, y1, exercise_step_coords[right_potential_endpoint][0], exercise_step_coords[right_potential_endpoint][1]);
+  // You have to be within 50 pixels to earn points
+  // TODO: percent of length instead? Maybe we should store teacher path length as a toplevel.
+  return Math.max(0, (50-Math.min(left_dist, right_dist))/50);
+}
+
+// Convert relative coordinates to absolute ones
+// We assume a square canvas here and enforce it elsewhere so someone can
+// create a stroke without worrying about it distorting on someone else's screen.
+function convertRelativeCoordsToAbsolute(coords_list) {
+  var mult = ctx.canvas.width;
+  var transformed_coords = [];
+  for (var i = 0; i < coords_list.length; i++){
+    transformed_coords.push([coords_list[i][0]*mult,
+                             coords_list[i][1]*mult]);
+  }
+  return transformed_coords;
+}
+
+function getDescriptorFromGrade(grade){
+  if(grade > 0.95){return {"desc": "GLORIOUS!", "color": "#FF6666"};}
+  if(grade > 0.80){return {"desc": "Great!", "color": "#FF66FF"};}
+  if(grade > 0.60){return {"desc": "Good", "color": "#66FFFF"};}
+  if(grade >= 0.35){return {"desc": "Fair", "color": "#66FF66"};}
+  return {"desc": "miss", "color": "#888888"};
+}
+
+// Update the displays with the grade result and return the score and max
+// Could use a better name.
+function applyGrade(grade_name, grade){
+  var grade_text = getDescriptorFromGrade(grade);
+  var grade_text_span = document.getElementById(grade_name + "_rating");
+  grade_text_span.style.color = grade_text.color;
+  grade_text_span.textContent = grade_text.desc;
+  return [grade * exercise[grade_name+"_mult"] * exercise.point_value, exercise[grade_name+"_mult"] * exercise.point_value];
+}
+
+// Calculate the grades, distribute the points, and update the descriptors
+function gradeStroke(){
+  // TODO: in the future, more grade categories (opacity) and possibility of some not existing...
+  var point_spreads = [];
+  point_spreads.push(applyGrade("length", gradeLength()));
+  point_spreads.push(applyGrade("speed", gradeSpeed()));
+  point_spreads.push(applyGrade("accuracy", gradeAccuracy()));
+  point_spreads.push(applyGrade("endpoint", gradeEndpoint()));
+  var total_points = 0;
+  var possible_points = 0;
+  for(var i=0; i<point_spreads.length; i++){
+    total_points += point_spreads[i][0];
+    possible_points += point_spreads[i][1];
+  }
+  applyGrade("overall", total_points/possible_points);
+  var exercise_score = document.getElementById("exercise_score");
+  exercise_score.textContent = parseInt(exercise_score.textContent) + Math.floor(total_points);
+  var total_score = document.getElementById("total_score");
+  total_score.textContent = parseInt(total_score.textContent) + Math.floor(total_points);
+}
+
+// Move with the mouse.
+function setPosition(e) {
+  pos.x = e.offsetX;
+  pos.y = e.offsetY;
+  student_coords.push([pos.x, pos.y]);
+}
+
+// resize canvas
+function resize() {
+  //We reserve 20% width for score/etc and a 10whatever margin
+  ctx.canvas.width = Math.min(window.innerWidth*0.8, window.innerHeight-20);
+  ctx.canvas.height = ctx.canvas.width;
+}
+
+function drawLearnerStroke(e) {
+  // mouse left button must be pressed
+  if (e.buttons !== 1) return;
+  ctx.beginPath();
+  ctx.moveTo(pos.x, pos.y);
+  setPosition(e);
+  ctx.lineTo(pos.x, pos.y);
+  ctx.stroke();
+}
+
+// I'd like this screen to become more lively as the score gets higher
+// It's the main "reward". Maybe it could have flowers and the like "sprouting" from the bottom
+function drawStartExerciseScreen() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.font = big_font;
+  ctx.fillStyle = light_ink;
+  var positions = convertRelativeCoordsToAbsolute([[0.2, 0.2], [0.2, 0.4], [0.2, 0.6]]);
+  ctx.fillText("Let's Go!", positions[0][0], positions[0][1]);
+  ctx.fillText(exercise.title, positions[1][0], positions[1][1]);
+  ctx.font = small_font;
+  var description_string = exercise.description + " [Author: " + exercise.author + "]";
+  ctx.fillText(description_string, positions[2][0], positions[2][1]);
+}
