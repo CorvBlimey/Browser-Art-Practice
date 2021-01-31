@@ -47,8 +47,14 @@ canvas.addEventListener('mousemove', processMouseMove);
 canvas.addEventListener('mousedown', processMouseDown);
 canvas.addEventListener('mouseenter', processMouseDown);
 canvas.addEventListener('mouseup', processMouseUp);
+canvas.addEventListener('touchmove', processMouseMove);
+canvas.addEventListener('touchstart', processTouchStart);
+canvas.addEventListener('touchend', processMouseUp);
 
 drawNextExerciseScreen({"text": "Let's Go!", "color": light_ink});
+
+// Cancel any mouse events fired during touch event
+function processTouchStart(e){e.preventDefault(); processMouseDown(e);}
 
 function processMouseMove(e){
   switch(current_canvas_mode) {
