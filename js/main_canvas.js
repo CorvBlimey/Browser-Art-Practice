@@ -5,7 +5,7 @@ canvas.style.background = '#272127';  // I use desaturated purples for...reasons
 var ctx = canvas.getContext('2d');
 canvas.style.margin = "auto";
 canvas.style.display = "block";
-var teacher_line_width = 4;
+var teacher_line_width = 5;
 var student_line_width = 3;
 ctx.lineCap = 'round';
 var small_font = "1vw Monospace";
@@ -162,9 +162,16 @@ function gradeAccuracy(){
   var total_positions = student_coords.length;
   assembleTeacherStroke();
   ctx.lineWidth = teacher_line_width+2;  // +1 because the width and human eye don't seem 100% aligned
+  // We do this twice; once for the "perfect" match, and a second time with a wider line for "half credit"
   for(var i=0; i<student_coords.length; i++){
     if(ctx.isPointInStroke(student_coords[i][0], student_coords[i][1])){
-      accurate_positions ++;
+      accurate_positions += 0.5;
+    }
+  }
+  ctx.lineWidth = teacher_line_width*2+2;
+  for(i=0; i<student_coords.length; i++){
+    if(ctx.isPointInStroke(student_coords[i][0], student_coords[i][1])){
+      accurate_positions += 0.5;
     }
   }
   return accurate_positions/total_positions;
@@ -243,9 +250,10 @@ function gradeEndpoint(){
   y1 = student_coords[student_coords.length-1][1];
   var left_dist = getDistanceBetweenPoints(x1, y1, exercise_step_coords[left_potential_endpoint][0], exercise_step_coords[left_potential_endpoint][1]);
   var right_dist = getDistanceBetweenPoints(x1, y1, exercise_step_coords[right_potential_endpoint][0], exercise_step_coords[right_potential_endpoint][1]);
-  // You have to be within 50 pixels to earn points
-  // TODO: percent of length instead? Maybe we should store teacher path length as a toplevel.
-  return Math.max(0, (50-Math.min(left_dist, right_dist))/50);
+  // You have to be within 20 pixels or 5% of the teacher line (max 100px), whichever's greater, to earn points.
+  // TODO: Maybe we should store teacher path length as a toplevel.
+  points_window = Math.max(20, Math.min(100, getLengthOfCoordPath(exercise_step_coords)*0.05));
+  return Math.max(0, (points_window-Math.min(left_dist, right_dist))/points_window);
 }
 
 // Convert relative coordinates to absolute ones
