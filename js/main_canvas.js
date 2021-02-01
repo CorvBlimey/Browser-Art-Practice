@@ -11,7 +11,7 @@ ctx.lineCap = 'round';
 var small_font = "1vw Monospace";
 var big_font = "2vw Monospace";
 var light_ink = "#FFF4EC";
-var dark_ink = "#CFB47C";
+var dark_ink = "#66FF66"; //"#CFB47C";
 var exercise_text = {
   "GLORIOUS!": ["That was amazing!", "You knocked it out of the park!", "Fantastic work!", "You're killing it!",
                 "Absolutely stunning!", "GLORIOUS!"],
@@ -264,7 +264,7 @@ function convertRelativeCoordsToAbsolute(coords_list) {
 function getDescriptorFromGrade(grade){
   if(grade > 0.95){return {"text": "GLORIOUS!", "color": "#FFAA66"};}
   if(grade > 0.80){return {"text": "Great!", "color": "#FF66FF"};}
-  if(grade > 0.60){return {"text": "Good", "color": "#66FFFF"};}
+  if(grade > 0.60){return {"text": "Good", "color": "#66CCFF"};}
   if(grade >= 0.35){return {"text": "Fair", "color": "#66FF66"};}
   return {"text": "miss", "color": "#888888"};
 }
@@ -294,6 +294,7 @@ function gradeStroke(){
     possible_points += point_spreads[i][1];
   }
   applyGrade("overall", total_points/possible_points);
+  dark_ink = getDescriptorFromGrade(total_points/possible_points).color;
   total_points = Math.floor(total_points);
   exercise_possible_points += Math.floor(possible_points);
   exercise_points += total_points;
@@ -341,7 +342,7 @@ function drawNextExerciseScreen(encouragement) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.font = big_font;
   ctx.lineWidth = student_line_width;
-  var positions = convertRelativeCoordsToAbsolute([[0.5, 0.3], [0.5, 0.4], [0.5, 0.55]]);
+  var positions = convertRelativeCoordsToAbsolute([[0.5, 0.3], [0.5, 0.4], [0.5, 0.55], [0.5, 0.7]]);
   ctx.textAlign = "center";
   ctx.fillStyle = encouragement.color;
   ctx.fillText(encouragement.text, positions[0][0], positions[0][1]);
@@ -350,5 +351,6 @@ function drawNextExerciseScreen(encouragement) {
   ctx.font = small_font;
   var description_string = exercise.description + " [Author: " + exercise.author + "]";
   ctx.fillText(description_string, positions[2][0], positions[2][1]);
+  ctx.fillText("[tap to continue]", positions[3][0], positions[3][1]);
   document.getElementById("strokes_total").textContent = exercise.strokes.length;
 }
