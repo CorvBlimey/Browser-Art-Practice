@@ -213,8 +213,10 @@ function getLengthOfCoordPath(coords_list){
 function gradeLength(){
   ideal_length = getLengthOfCoordPath(exercise_step_coords);
   student_length = getLengthOfCoordPath(student_coords);
-  // You earn points if the length difference is within 40% of the ideal length or 40 pixels, whichever's smaller.
-  return Math.max(0, 1-Math.abs(ideal_length-student_length)/Math.min(40, ideal_length*0.4));
+  // You earn points if the length difference is within 50% of the ideal length or 20 pixels, whichever's smaller.
+  // 50% might seem like a lot, but consider that the fail cutoff is 40% of the remaining 50%, so you'll need to
+  // be better than 70% to not fail. Still might be a bit over-generous though.
+  return Math.max(0, 1-Math.abs(ideal_length-student_length)/Math.min(20, ideal_length*0.5));
 }
 
 // The shorter the line, the faster you should finish it. And faster lines look better. Probably.
@@ -250,9 +252,10 @@ function gradeEndpoint(){
   y1 = student_coords[student_coords.length-1][1];
   var left_dist = getDistanceBetweenPoints(x1, y1, exercise_step_coords[left_potential_endpoint][0], exercise_step_coords[left_potential_endpoint][1]);
   var right_dist = getDistanceBetweenPoints(x1, y1, exercise_step_coords[right_potential_endpoint][0], exercise_step_coords[right_potential_endpoint][1]);
-  // You have to be within 20 pixels or 5% of the teacher line (max 100px), whichever's greater, to earn points.
+  // You have to be within 40 pixels or 20% of the teacher line (max 120px), whichever's greater, to earn points.
+  // Note that at 40 pixels, you must be within 2 pixels of the endpoint to earn a GLORIOUS, 6 at 120
   // TODO: Maybe we should store teacher path length as a toplevel.
-  points_window = Math.max(20, Math.min(100, getLengthOfCoordPath(exercise_step_coords)*0.05));
+  points_window = Math.max(40, Math.min(120, getLengthOfCoordPath(exercise_step_coords)*0.2));
   return Math.max(0, (points_window-Math.min(left_dist, right_dist))/points_window);
 }
 
@@ -271,9 +274,9 @@ function convertRelativeCoordsToAbsolute(coords_list) {
 
 function getDescriptorFromGrade(grade){
   if(grade > 0.95){return {"text": "GLORIOUS!", "color": "#FFAA66"};}
-  if(grade > 0.80){return {"text": "Great!", "color": "#FF66FF"};}
-  if(grade > 0.60){return {"text": "Good", "color": "#66CCFF"};}
-  if(grade >= 0.35){return {"text": "Fair", "color": "#66FF66"};}
+  if(grade > 0.82){return {"text": "Great!", "color": "#FF66FF"};}
+  if(grade > 0.64){return {"text": "Good", "color": "#66CCFF"};}
+  if(grade >= 0.40){return {"text": "Fair", "color": "#66FF66"};}
   return {"text": "miss", "color": "#888888"};
 }
 
