@@ -1,17 +1,30 @@
 // This is the main "game screen"/spaghetti warehouse for the program.
+
+// Configuring the page
 var canvas = document.createElement('canvas');
 document.getElementById("canvas_div").appendChild(canvas);
 canvas.style.background = '#272127';  // I use desaturated purples for...reasons?
 var ctx = canvas.getContext('2d');
 canvas.style.margin = "auto";
 canvas.style.display = "block";
+const url_variables = new URLSearchParams(window.location.search);
+
+if(url_variables.has("exercises")){
+  const lesson_mode = true;
+  const lesson_roster = url_variables.getAll("exercises");
+  document.getElementById("exercises_total").textContent = lesson_roster.length;
+} else {
+  const lesson_mode = false;
+  document.getElementById("hideable_target_exercises").style.display = "none";
+}
+
 var teacher_line_width = 5;
 var student_line_width = 3;
 ctx.lineCap = 'round';
 var small_font = "1vw Monospace";
 var big_font = "2vw Monospace";
 var light_ink = "#FFF4EC";
-var dark_ink = "#66FF66"; //"#CFB47C";
+var dark_ink = "#66FF66";
 var exercise_text = {
   "GLORIOUS!": ["That was amazing!", "You knocked it out of the park!", "Fantastic work!", "You're killing it!",
                 "Absolutely stunning!", "GLORIOUS!"],
@@ -23,6 +36,7 @@ ctx.strokeStyle = dark_ink;
 ctx.fillStyle = light_ink;
 var pos = { x: 0, y: 0 };
 var score = 0;
+
 // plain Javascript's Enum equivalent does allow for "wrong" values, oh well
 CanvasMode = Object.freeze({"startExercise":1,
                             "doExercise":2,
@@ -30,6 +44,7 @@ CanvasMode = Object.freeze({"startExercise":1,
                             "done":4});
 var current_canvas_mode = CanvasMode.startExercise;
 var exercise = setExerciseDefaults(chooseRandomExercise());  // only random mode for now
+var exercises_done = 0;
 var exercise_step = 0;
 var exercise_step_coords = [];  // Coords for the current step of the exercise
 var student_coords = [];
@@ -276,7 +291,7 @@ function applyGrade(grade_name, grade){
 
 // Calculate the grades, distribute the points, and update the descriptors
 function gradeStroke(){
-  // TODO: in the future, more grade categories (opacity) and possibility of some not existing...
+  // TODO: in the future, more grade categories (opacity?)
   var point_spreads = [];
   point_spreads.push(applyGrade("length", gradeLength()));
   point_spreads.push(applyGrade("speed", gradeSpeed()));
@@ -347,5 +362,7 @@ function drawNextExerciseScreen(encouragement) {
   var description_string = exercise.description + " [Author: " + exercise.author + "]";
   wrapText(ctx, description_string, positions[2][0], positions[2][1], canvas.width/1.2, canvas.height/25);
   ctx.fillText("[tap to continue]", positions[3][0], positions[3][1]);
+  document.getElementById("exercises_done").textContent = exercises_done;
   document.getElementById("strokes_total").textContent = exercise.strokes.length;
+  exercises_done ++;
 }
