@@ -1,4 +1,6 @@
-body {background-color: #201920; font-family: verdana,sans-serif;;;}
+html {cursor:crosshair;}
+
+body {background-color: #201920; font-family: verdana,sans-serif;}
 
 a {color: #FFF4DC}
 
@@ -8,7 +10,7 @@ span {color: #FFF4DC; font-family: monospace; font-size: 1.5vw; text-overflow: e
 
 .infoholder {float: left; width: 20%; box-sizing:content-box;}
 
-.canvas_div {width: 60%; float: left; cursor:crosshair;}
+.canvas_div {width: 60%; float: left;}
 
 .stat_span {display: block; padding-left: 6px}
 
