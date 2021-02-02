@@ -222,8 +222,21 @@ function gradeLength(){
 // The shorter the line, the faster you should finish it. And faster lines look better. Probably.
 function gradeSpeed(){
   var elapsed_ms = student_end_time - student_start_time;
-  // We arbitrarily say that the rate to aim for is 1.5 pixels per millisecond
-  return Math.min(1, 1.5*(getLengthOfCoordPath(exercise_step_coords)/elapsed_ms));
+  // First we find our speed, "pixels per millisecond"
+  var path_length = getLengthOfCoordPath(exercise_step_coords);
+  var ppm = path_length/elapsed_ms;
+  // We can multiply it to make it easier (*2 would mean "you're expected to take half
+  // as many milliseconds per pixel", aka you have twice as much time to earn Glorious)
+  ppm *= 1.2;
+  /* Formula works like this: as the length of the line approaches 0, the bonus multiplier approaches max_bonus (where 3 means
+     you have 3x as long to still earn Glorious). As the length approaches bonus_cutoff, the multiplier approaches 1. Halfway
+     between 0 and the cutoff, you get half the bonus (max bonus of 3, bonus of 1 does nothing, halfway you get x2). I don't
+     have proof, just graph it. */
+  var bonus_cutoff = 200;
+  var max_bonus = 3;
+  ppm *= Math.max(1, 1+(max_bonus-1)*(bonus_cutoff-path_length)/bonus_cutoff);
+  // And now we have our (completely arbitrary, still probably in need of tweaking) speed score!
+  return Math.min(1, ppm);
 }
 
 /* Part of control is ending up where you're supposed to, so we give a big bonus
