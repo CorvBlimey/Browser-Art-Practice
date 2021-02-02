@@ -177,35 +177,6 @@ function gradeAccuracy(){
   return accurate_positions/total_positions;
 }
 
-// Given just two points in split-out form (see args), find their distance.
-function getDistanceBetweenPoints(x1, y1, x2, y2){return Math.sqrt((x1-x2)**2 + (y1-y2)**2);}
-
-// Given a list of absolute coords, find the distance from one to the next.
-function getDistanceBetweenCoords(coordinate_list){
-  var distances = [];
-  var x1 = coordinate_list[0][0];
-  var y1 = coordinate_list[0][1];
-  for(var i=1; i<coordinate_list.length; i++){
-    var x2 = coordinate_list[i][0];
-    var y2 = coordinate_list[i][1];
-    distances.push(getDistanceBetweenPoints(x1, y1, x2, y2));
-    x1 = x2;
-    y1 = y2;
-  }
-  return distances;
-}
-
-// Given a list of absolute coords, find how long the final path is.
-function getLengthOfCoordPath(coords_list){
-  var dist_list = getDistanceBetweenCoords(coords_list);
-  // My kingdom for a list comprehension.
-  var total_distance = 0;
-  for(var i=0; i < dist_list.length; i++){
-    total_distance += dist_list[i];
-  }
-  return total_distance;
-}
-
 // Check how long the student's path is vs. the teacher's.
 // This is a stand-in for looking for "wiggliness", which would AFAIK be a nightmare to compute
 // This is gameable (an awful wiggly line that HAPPENS TO BE the same length as the teacher's because it's
@@ -371,10 +342,10 @@ function drawNextExerciseScreen(encouragement) {
   ctx.fillStyle = encouragement.color;
   ctx.fillText(encouragement.text, positions[0][0], positions[0][1]);
   ctx.fillStyle = light_ink;
-  ctx.fillText("Next: "+exercise.title, positions[1][0], positions[1][1]);
+  ctx.fillText(exercise.title, positions[1][0], positions[1][1]);
   ctx.font = small_font;
   var description_string = exercise.description + " [Author: " + exercise.author + "]";
-  ctx.fillText(description_string, positions[2][0], positions[2][1]);
+  wrapText(ctx, description_string, positions[2][0], positions[2][1], canvas.width/1.2, canvas.height/25);
   ctx.fillText("[tap to continue]", positions[3][0], positions[3][1]);
   document.getElementById("strokes_total").textContent = exercise.strokes.length;
 }
