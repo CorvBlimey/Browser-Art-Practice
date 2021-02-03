@@ -35,7 +35,12 @@ var exercise_text = {
 ctx.strokeStyle = dark_ink;
 ctx.fillStyle = light_ink;
 var pos = { x: 0, y: 0 };
-var score = 0;
+var overall_score = {
+  "accuracy": {"earned": 0, "possible": 0},
+  "length": {"earned": 0, "possible": 0},
+  "speed": {"earned": 0, "possible": 0},
+  "endpoint": {"earned": 0, "possible": 0},
+  "overall": {"earned": 0, "possible": 0}};
 
 // plain Javascript's Enum equivalent does allow for "wrong" values, oh well
 CanvasMode = Object.freeze({"startExercise":1,
@@ -43,6 +48,7 @@ CanvasMode = Object.freeze({"startExercise":1,
                             "finishExercise":3,
                             "done":4});
 var current_canvas_mode = CanvasMode.startExercise;
+
 var exercise = setExerciseDefaults(chooseRandomExercise());  // only random mode for now
 var exercises_done = 0;
 var exercise_step = 0;
@@ -121,14 +127,13 @@ function processMouseUp(e){
 }
 
 // Reset our counters in preparation for the next exercise
+// This, too, might be happier as an object
 function clearForNextExercise(){
   exercise_step = 0;
+  var exercise_points = 0;
+  var exercise_possible_points = 0;
   exercise_step_coords = [];
   student_coords = [];
-  exercise_points = 0;
-  exercise_possible_points = 0;
-  document.getElementById("exercise_score").textContent = 0;
-  document.getElementById("strokes_done").textContent = 0;
 }
 
 
@@ -140,11 +145,13 @@ function chooseRandomExercise(){
 
 // For exercises.js cleanliness, we allow exercises to not set ALL possible properties
 // For sanity in accessing them, we set them here.
+// TODO: Could I just do classes with default values or something?
+// Javascript definitely has some kind of class system.
 function setExerciseDefaults(exercise){
     if (!exercise.hasOwnProperty('useOpacity')){
       exercise.useOpacity = false;  // Opacity will be a whole can of worms
     }
-    exercise.overall_mult = 0; // This is bad and I feel bad but I'm very tired
+    if (!exercise.hasOwnProperty('mode')){exercise.mode = "normal";}
     return exercise;
 }
 
@@ -157,6 +164,17 @@ function assembleTeacherStroke(){
   }
 }
 
+// Assemble the current stroke, but only draw dots along it.
+// Do not use for grading!
+function assembleTeacherDottedStroke(){
+  ctx.beginPath();
+  ctx.arc(exercise_step_coords[0][0], exercise_step_coords[0][1], 2, 0, Math.PI * 2, true);
+  for(var i = 1; i < exercise_step_coords.length; i++){
+      ctx.moveTo(exercise_step_coords[i][0], exercise_step_coords[i][1]);
+      ctx.arc(exercise_step_coords[i][0], exercise_step_coords[i][1], 2, 0, Math.PI * 2, true);
+  }
+}
+
 // Wrapper so I can reuse assembleTeacherStroke for grading.
 // It really feels like I should be able to save that path and return it to
 // grade the student against, but I can't for the life of me figure out how to.
@@ -164,7 +182,11 @@ function drawTeacherStroke(){
   exercise_step_coords = convertRelativeCoordsToAbsolute(exercise.strokes[exercise_step]);
   ctx.strokeStyle = dark_ink;
   ctx.lineWidth = teacher_line_width;
-  assembleTeacherStroke();
+  if(exercise.mode == "dots"){
+    assembleTeacherDottedStroke();
+  } else {
+    assembleTeacherStroke();
+  }
   ctx.stroke();
   ctx.strokeStyle = light_ink;
   ctx.lineWidth = student_line_width;
@@ -199,10 +221,8 @@ function gradeAccuracy(){
 function gradeLength(){
   ideal_length = getLengthOfCoordPath(exercise_step_coords);
   student_length = getLengthOfCoordPath(student_coords);
-  // You earn points if the length difference is within 50% of the ideal length or 20 pixels, whichever's smaller.
-  // 50% might seem like a lot, but consider that the fail cutoff is 40% of the remaining 50%, so you'll need to
-  // be better than 70% to not fail. Still might be a bit over-generous though.
-  return Math.max(0, 1-Math.abs(ideal_length-student_length)/Math.min(20, ideal_length*0.5));
+  // You only start earning points if you're within ~33% of the target length (3 ~~ 1/0.33)
+  return Math.max(0, 1-3*(Math.abs(ideal_length-student_length)/(ideal_length)));
 }
 
 // The shorter the line, the faster you should finish it. And faster lines look better. Probably.
@@ -286,7 +306,23 @@ function applyGrade(grade_name, grade){
   var grade_text_span = document.getElementById(grade_name + "_rating");
   grade_text_span.style.color = grade_text.color;
   grade_text_span.textContent = grade_text.text;
-  return [grade * exercise[grade_name+"_mult"] * exercise.point_value, exercise[grade_name+"_mult"] * exercise.point_value];
+  var points_earned;
+  var points_possible;
+  if(grade_name !== "overall"){
+    points_earned = grade * exercise[grade_name+"_mult"] * exercise.point_value;
+    points_possible = exercise[grade_name+"_mult"] * exercise.point_value;
+    overall_score[grade_name].earned += points_earned;
+    overall_score[grade_name].possible += points_possible;
+    overall_score.overall.earned += points_earned;
+    overall_score.overall.possible += points_possible;
+  }
+  var new_overall_grade = overall_score[grade_name].earned/overall_score[grade_name].possible;
+  var grade_descriptor = getDescriptorFromGrade(new_overall_grade);
+  var overall_grade_text_span = document.getElementById("overall_" + grade_name + "_rating");
+  overall_grade_text_span.textContent = Math.ceil(new_overall_grade*100);
+  overall_grade_text_span.style.color = grade_descriptor.color;
+  // For "overall" this is probably just NaNs. Not sure how best to handle this in JS.
+  return [points_earned, points_possible];
 }
 
 // Calculate the grades, distribute the points, and update the descriptors
@@ -305,12 +341,8 @@ function gradeStroke(){
   }
   applyGrade("overall", total_points/possible_points);
   dark_ink = getDescriptorFromGrade(total_points/possible_points).color;
-  total_points = Math.floor(total_points);
-  exercise_possible_points += Math.floor(possible_points);
   exercise_points += total_points;
-  document.getElementById("exercise_score").textContent = exercise_points;
-  var total_score = document.getElementById("total_score");
-  total_score.textContent = parseInt(total_score.textContent) + total_points;
+  exercise_possible_points += possible_points;
 }
 
 // Move with the mouse/touch
