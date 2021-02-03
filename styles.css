@@ -1,18 +1,46 @@
 html {cursor:crosshair;}
 
-body {background-color: #201920; font-family: verdana,sans-serif;}
+body {background-color: #181118; font-family: verdana,sans-serif;}
 
-a {color: #FFF4DC}
+h1 {color: #FFF4DC; font-family: monospace; font-size: 3.5vw; margin: 6vh auto; text-align: center}
 
-span {color: #FFF4DC; font-family: monospace; font-size: 1.5vw; text-overflow: ellipsis;}
+span, a, p {color: #FFF4DC; font-family: monospace; text-overflow: ellipsis;}
 
-.infobox {background: #272127; padding: 5px; box-sizing:content-box; margin-left : 5px; margin-right : 5px;}
+a {color: #FFFFFF}
+a:hover {color: #BFB49C}
+
+nav ul{height:60vh; width:100%;}
+nav ul{overflow:hidden; overflow-y:scroll;}
+
+span {font-size: 1.5vw}
+
+.infobox {background: #211721; padding: 12px; box-sizing:content-box; margin-left : 5px; margin-right : 5px;}
 
 .infoholder {float: left; width: 20%; box-sizing:content-box;}
 
 .canvas_div {width: 60%; float: left;}
 
 .stat_span {display: block; padding-left: 6px}
+
+.menu_content-div {box-sizing:content-box;}
+
+.menu_sidebar_div {float: left; width: 25%; box-sizing:content-box; margin: 8vh auto; font-size: 1.1vw;
+                   padding: 0.3vw 0 0; background: #211721}
+
+.menu_div {float: left; width: 50%; box-sizing:content-box; margin; auto}
+
+.menu_button, .lesson_button {display: block; width: 50%; margin: 5px auto; font-size: 1.5vw;
+              font-family: monospace; padding: 10px; background: #291F29; border:none; color:#FFF4DC;
+              radius: 50px}
+
+.lesson_button {width: 100%;}
+
+.selected_lesson {background:#392839;}
+
+.menu_button:hover, .lesson_button:hover {background:#392839;}
+
+.deactivated, .deactivated:hover {background: #2A2A2A}
+
 
 @media screen and (max-width: 800px) {
    .canvas_div {
@@ -28,5 +56,10 @@ span {color: #FFF4DC; font-family: monospace; font-size: 1.5vw; text-overflow: e
 
   .stat_span {
     display: inline;
+  }
+
+  .menu_sidebar_div {
+    font-size: 1.6vw;
+    margin: auto;
   }
 }

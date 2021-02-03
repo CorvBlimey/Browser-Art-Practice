@@ -3,7 +3,7 @@
 // Configuring the page
 var canvas = document.createElement('canvas');
 document.getElementById("canvas_div").appendChild(canvas);
-canvas.style.background = '#272127';  // I use desaturated purples for...reasons?
+canvas.style.background = '#211721';  // I use desaturated purples for...reasons?
 var ctx = canvas.getContext('2d');
 canvas.style.margin = "auto";
 canvas.style.display = "block";
@@ -296,7 +296,7 @@ function getDescriptorFromGrade(grade){
   if(grade > 0.82){return {"text": "Great!", "color": "#FF66FF"};}
   if(grade > 0.64){return {"text": "Good", "color": "#66CCFF"};}
   if(grade >= 0.40){return {"text": "Fair", "color": "#66FF66"};}
-  return {"text": "miss", "color": "#888888"};
+  return {"text": "miss", "color": "#747474"};
 }
 
 // Update the displays with the grade result and return the score and max
@@ -318,6 +318,7 @@ function applyGrade(grade_name, grade){
   }
   var new_overall_grade = overall_score[grade_name].earned/overall_score[grade_name].possible;
   var grade_descriptor = getDescriptorFromGrade(new_overall_grade);
+  if(grade_descriptor.text == "miss"){grade_descriptor.color = light_ink;}
   var overall_grade_text_span = document.getElementById("overall_" + grade_name + "_rating");
   overall_grade_text_span.textContent = Math.ceil(new_overall_grade*100);
   overall_grade_text_span.style.color = grade_descriptor.color;
