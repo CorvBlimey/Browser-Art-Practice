@@ -1,0 +1,42 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>Browser Art Practice</title>
+  <meta name="description" content="Main canvas for browser art practice">
+  <meta name="author" content="CorvBlimey">
+
+  <link rel="stylesheet" href="styles.css">
+
+</head>
+
+<body>
+ <div id="content_div">
+  <div id="left_status_div" class="infoholder">
+    <div id="assesment_div" class="infobox">
+      <span class="stat_span">Accuracy: <span id="accuracy_rating">None</span></span>
+      <span class="stat_span">Length: <span id="length_rating">None</span></span>
+      <span class="stat_span">Speed: <span id="speed_rating">None</span></span>
+      <span class="stat_span">Endpoint: <span id="endpoint_rating">None</span></span>
+      <span class="stat_span">Overall: <span id="overall_rating">None</span></span>
+      <span class="stat_span">Strokes: <span id="strokes_done">0</span><span>/</span><span id="strokes_total">0</span></span>
+    </div></div>
+  <div id="canvas_div" class="canvas_div"></div>
+  <div id="right_status_div" class="infoholder">
+    <div id="scoring_div" class="infobox">
+      <span class="stat_span"><span id="overall_accuracy_rating">-</span>% Accuracy</span>
+      <span class="stat_span"><span id="overall_length_rating">-</span>% Length</span>
+      <span class="stat_span"><span id="overall_speed_rating">-</span>% Speed</span>
+      <span class="stat_span"><span id="overall_endpoint_rating">-</span>% Endpoint</span>
+      <span class="stat_span"><span id="overall_overall_rating">-</span>% Overall</span> <!-- Quality id name -->
+      <span class="stat_span">Exercises: <span id="exercises_done">0</span><span id="hideable_target_exercises"><span>/</span><span id="exercises_total">0</span></span></span>
+    </div>
+  </div>
+ </div>
+  <script type="text/javascript" src="js/exercises.js"></script>
+  <script type="text/javascript" src="js/utils.js"></script>
+  <script type="text/javascript" src="js/main_canvas.js"></script>
+</body>
+</html>

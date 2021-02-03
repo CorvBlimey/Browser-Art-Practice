@@ -1,11 +1,11 @@
 <!doctype html>
 
-<html lang="en">
+<html lang="en" style="cursor:auto;">
 <head>
   <meta charset="utf-8">
 
   <title>Browser Art Practice</title>
-  <meta name="description" content="Main canvas for browser art practice">
+  <meta name="description" content="Main menu for browser art practice tool">
   <meta name="author" content="CorvBlimey">
 
   <link rel="stylesheet" href="styles.css">
@@ -13,30 +13,37 @@
 </head>
 
 <body>
- <div id="content_div">
-  <div id="left_status_div" class="infoholder">
-    <div id="assesment_div" class="infobox">
-      <span class="stat_span">Accuracy: <span id="accuracy_rating">None</span></span>
-      <span class="stat_span">Length: <span id="length_rating">None</span></span>
-      <span class="stat_span">Speed: <span id="speed_rating">None</span></span>
-      <span class="stat_span">Endpoint: <span id="endpoint_rating">None</span></span>
-      <span class="stat_span">Overall: <span id="overall_rating">None</span></span>
-      <span class="stat_span">Strokes: <span id="strokes_done">0</span><span>/</span><span id="strokes_total">0</span></span>
-    </div></div>
-  <div id="canvas_div" class="canvas_div"></div>
-  <div id="right_status_div" class="infoholder">
-    <div id="scoring_div" class="infobox">
-      <span class="stat_span"><span id="overall_accuracy_rating">-</span>% Accuracy</span>
-      <span class="stat_span"><span id="overall_length_rating">-</span>% Length</span>
-      <span class="stat_span"><span id="overall_speed_rating">-</span>% Speed</span>
-      <span class="stat_span"><span id="overall_endpoint_rating">-</span>% Endpoint</span>
-      <span class="stat_span"><span id="overall_overall_rating">-</span>% Overall</span> <!-- Quality id name -->
-      <span class="stat_span">Exercises: <span id="exercises_done">0</span><span id="hideable_target_exercises"><span>/</span><span id="exercises_total">0</span></span></span>
+ <div id="vertical_centering_div" style="height:10vh"></div>
+ <div id="menu_content_div">
+   <div id="how_to_div" class=menu_sidebar_div>
+     <p>The tool has a full <a href="https://github.com/CorvBlimey/Browser-Art-Practice/blob/main/README.md">README</a> here, including who should (and shouldn't!) use it. In short:<br><br>
+       BAPraT provides instant feedback on infinite line control exercises. It does this by presenting you with
+       the description of an exercise, then (usually) one or more strokes to trace. Each stroke you make will be graded in a few
+       categories (see the README!) with results on the left of your screen and cumulative performance on the right. Keep doing strokes and
+       you'll eventually complete the exercise and move on to the next.<br><br>
+       I'd recommend going straight to<br><a href="./exercises.html">Do Exercises</a> for some random exercises; if you feel lost after that, check the README. Best of luck, I'm rooting for you!</p>
     </div>
+    <div id="menu_div" class=menu_div>
+      <div id="title_div"><h1>Browser Art<br>Practice Tool</h1></div>
+        <button class=menu_button onclick="window.location.href='./exercises.html';">Do Exercises</button>
+        <button class="menu_button deactivated">Create Exercises</button>
+        <button class="menu_button deactivated">Improve the Tool</button>
+    </div>
+    <div id="lessons_div" class=menu_sidebar_div>
+      <nav>
+      <ul>
+          <button class="lesson_button selected_lesson">Random</button>
+          <button class="lesson_button deactivated">Unselectable</button>
+          <button class="lesson_button deactivated">Unselectable</button>
+          <button class="lesson_button deactivated">Unselectable</button>
+          <button class="lesson_button deactivated">Unselectable</button>
+          <button class="lesson_button deactivated">Unselectable</button>
+          <button class="lesson_button deactivated">Unselectable</button>
+          <button class="lesson_button deactivated">Unselectable</button>
+          <button class="lesson_button deactivated">Unselectable</button>
+      </ul>
+    </nav>
   </div>
- </div>
-  <script type="text/javascript" src="js/exercises.js"></script>
-  <script type="text/javascript" src="js/utils.js"></script>
-  <script type="text/javascript" src="js/main_canvas.js"></script>
+  </div>
 </body>
 </html>
