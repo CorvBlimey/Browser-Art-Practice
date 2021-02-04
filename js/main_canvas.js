@@ -166,12 +166,14 @@ function assembleTeacherStroke(){
 
 // Assemble the current stroke, but only draw dots along it.
 // Do not use for grading!
-function assembleTeacherDottedStroke(){
+function strokeTeacherDottedStroke(){
   ctx.beginPath();
-  ctx.arc(exercise_step_coords[0][0], exercise_step_coords[0][1], 2, 0, Math.PI * 2, true);
+  ctx.arc(exercise_step_coords[0][0], exercise_step_coords[0][1], 5, 0, Math.PI * 2, true);
+  ctx.stroke();
   for(var i = 1; i < exercise_step_coords.length; i++){
-      ctx.moveTo(exercise_step_coords[i][0], exercise_step_coords[i][1]);
-      ctx.arc(exercise_step_coords[i][0], exercise_step_coords[i][1], 2, 0, Math.PI * 2, true);
+      ctx.beginPath();
+      ctx.arc(exercise_step_coords[i][0], exercise_step_coords[i][1], 5, 0, Math.PI * 2, true);
+      ctx.stroke();
   }
 }
 
@@ -183,11 +185,11 @@ function drawTeacherStroke(){
   ctx.strokeStyle = dark_ink;
   ctx.lineWidth = teacher_line_width;
   if(exercise.mode == "dots"){
-    assembleTeacherDottedStroke();
+    strokeTeacherDottedStroke();
   } else {
     assembleTeacherStroke();
+    ctx.stroke();
   }
-  ctx.stroke();
   ctx.strokeStyle = light_ink;
   ctx.lineWidth = student_line_width;
 }
@@ -392,7 +394,7 @@ function drawNextExerciseScreen(encouragement) {
   ctx.fillStyle = light_ink;
   ctx.fillText(exercise.title, positions[1][0], positions[1][1]);
   ctx.font = small_font;
-  var description_string = exercise.description + " [Author: " + exercise.author + "]";
+  var description_string = exercise.description + " By: " + exercise.author;
   wrapText(ctx, description_string, positions[2][0], positions[2][1], canvas.width/1.2, canvas.height/25);
   ctx.fillText("[tap to continue]", positions[3][0], positions[3][1]);
   document.getElementById("exercises_done").textContent = exercises_done;
